@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         cc caption automatic translator
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @description  automatic translate the cc caption to current language of browser by using the translate feature of browser.
 // @author       You
 // @match        *://*/*
 // @grant       GM.xmlHttpRequest
 // @grant       GM_xmlhttpRequest
-// @connect     https://fanyi-api.baidu.com/
+// @connect     fanyi-api.baidu.com
 // @license    MIT
 // ==/UserScript==
 
@@ -21,8 +21,10 @@
   const toLang = 'zh';
   // The source language code (optional, can be auto-detected by baidu fanyi api)
   const from = 'en';
-
-  var initialed = false
+  var initialOptions = {
+    initialed:false,
+    buttonAdded:false
+  }
   let httpRequest;
   if (typeof GM < "u" && GM.xmlHttpRequest)
     httpRequest = GM.xmlHttpRequest;
@@ -83,20 +85,12 @@
 
   // 节流函数
   function throttle(func, delay) {
-    // 记录当前时间(就是第一次(上一次)滚动事件触发的时间)
     var prev = Date.now();
     return function () {
-      // 普通函数的this指向window
       var context = this;
-      // arguments是一个类数组对象，用于接受函数的参数
-      // 再次记录当前的时间（第二次(下一次)滚动事件的触发时间）
       var now = Date.now();
-      //两次滚动事件触发的时间间隔是否大于规定的时间
       if (now - prev >= delay) {
-        // 如果间隔大于规定的时间delay，就会调用func(也就是handle函数)
-        // apply:改变函数的this指向,第一个参数是this指向，第二参数是传递的参数，要用数组存放，
-        // call和bind是 一个一个的存放，不用数组
-        func.apply(context, [args]);
+        func.apply(context);
         prev = Date.now();
       }
     }
@@ -120,10 +114,14 @@
     div.style.opacity = '0.8'
     div.style.fontSize = '21px'
     div.style.zIndex = 99
-    let video = document.getElementsByTagName('video')[0]
-    video.parentElement.appendChild(div)
-    video.parentElement.style.position = 'relative'
-    initialed = true
+    try {
+      let video = document.getElementsByTagName('video')[0]
+      video.parentElement.appendChild(div)
+      video.parentElement.style.position = 'relative'
+    } catch (error) {
+      console.error(error)
+    }
+    initialOptions.initialed = true
     renderCurrentSubs()
   }
 
@@ -143,8 +141,11 @@
       }
     }, 300));
   }
+  var buttonAdded = false
   window.addEventListener("load", (event) => {
     //add generator button
+
+    if(initialOptions.buttonAdded) return;
 
     // Create a new button element
     var button = document.createElement("button");
@@ -153,17 +154,19 @@
     button.id="baidufanyi"
     button.style.bottom = "100px";
     button.style.right = "10px";
+    button.style.zIndex = 999
     button.style.position = 'fixed'
     button.addEventListener("click", function () {
-      if (!initialed) {
+      document.getElementById('baidufanyi').remove()
+      if (!initialOptions.initialed) {
         initViewElement()
       }
-      document.getElementById('baidufanyi').remove()
-      
     });
 
     // Add the button to the page
     document.body.appendChild(button);
+    //To exclude the "load" event triggered by the iframe
+    initialOptions.buttonAdded = true
 
   });
 
