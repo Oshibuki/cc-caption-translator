@@ -125,7 +125,7 @@
     renderCurrentSubs()
   }
 
-  function renderCurrentSubs() {
+   function renderCurrentSubs() {
     let video = document.getElementsByTagName('video')[0]
     let currentSub = document.getElementById('currentSub')
     video.addEventListener('timeupdate', throttle(e => {
@@ -133,8 +133,9 @@
         .find(track => track.mode === "showing");
       const texts = [...track.activeCues].map(cue => cue.text);
       let newVal = texts.join('\n');
-      let currentVal = document.getElementById('currentSub').innerHTML;
-      if (newVal !== currentVal) {
+      let currentVal = document.getElementById('currentSub').dataset.sourceStr;
+      if ( !currentVal ||  newVal !== currentVal) {
+           currentSub.dataset.sourceStr = newVal
         baiduFanyiTranslate(newVal.replace(/\n/g, ' '), (translation) => {
           currentSub.innerHTML = translation;
         })
