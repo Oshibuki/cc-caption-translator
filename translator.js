@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         cc caption automatic translator
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.6
 // @description  automatic translate the cc caption to current language of browser by using the translate feature of browser.
 // @author       You
 // @match        *://*/*
